@@ -2,7 +2,8 @@ import React from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import ProductCard from '../components/ProductCard';
-import { products } from '../data/products';
+import { useLicenses } from '../hooks/useLicenses';
+import { licenseToProduct } from '../utils/licenseAdapter';
 
 const HeroSection = styled.section`
   min-height: 80vh;
@@ -83,6 +84,20 @@ const ProductGrid = styled.div`
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 30px;
   margin-top: 40px;
+`;
+
+const LoadingMessage = styled.div`
+  text-align: center;
+  color: #00ff9d;
+  font-size: 1.2rem;
+  padding: 40px;
+`;
+
+const ErrorMessage = styled.div`
+  text-align: center;
+  color: #ff3366;
+  font-size: 1.2rem;
+  padding: 40px;
 `;
 
 const Footer = styled.footer`
@@ -167,6 +182,11 @@ const Location = styled.div`
 `;
 
 const Home: React.FC = () => {
+  const { licenses, loading, error } = useLicenses();
+  
+  // Convert licenses to products for display
+  const products = licenses.map(licenseToProduct);
+
   return (
     <>
       <HeroSection id="home">
@@ -200,18 +220,39 @@ const Home: React.FC = () => {
 
       <ProductsSection id="productos">
         <SectionTitle>Nuestros Productos</SectionTitle>
-        <ProductGrid>
-          {products.map((product, index) => (
-            <motion.div
-              key={product.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-            >
-              <ProductCard product={product} />
-            </motion.div>
-          ))}
-        </ProductGrid>
+        
+        {loading && (
+          <LoadingMessage>
+            <i className="fas fa-spinner fa-spin"></i> Cargando productos...
+          </LoadingMessage>
+        )}
+        
+        {error && (
+          <ErrorMessage>
+            <i className="fas fa-exclamation-triangle"></i> Error: {error}
+          </ErrorMessage>
+        )}
+        
+        {!loading && !error && products.length === 0 && (
+          <LoadingMessage>
+            No hay productos disponibles en este momento.
+          </LoadingMessage>
+        )}
+        
+        {!loading && !error && products.length > 0 && (
+          <ProductGrid>
+            {products.map((product, index) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+              >
+                <ProductCard product={product} />
+              </motion.div>
+            ))}
+          </ProductGrid>
+        )}
       </ProductsSection>
 
       <Footer id="contacto">

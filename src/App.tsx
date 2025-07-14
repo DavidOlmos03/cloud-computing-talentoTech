@@ -9,6 +9,7 @@ import ProductModal from './components/ProductModal';
 import CartModal from './components/CartModal';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import AdminPanel from './components/AdminPanel';
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -49,6 +50,7 @@ const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/admin" element={<AdminPanel />} />
             </Routes>
             <ProductModal />
             <CartModal />
