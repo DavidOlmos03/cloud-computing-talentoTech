@@ -44,9 +44,34 @@ const Price = styled.p`
 
 interface ProductCardProps {
   product: Product;
+  onEdit?: (product: Product) => void;
+  onDelete?: (product: Product) => void;
+  showCrudButtons?: boolean;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+const CrudButtons = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 15px;
+`;
+
+const CrudButton = styled.button`
+  background: #00ff9d;
+  color: #222;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover {
+    background: #00cc7e;
+  }
+`;
+
+const ProductCard: React.FC<ProductCardProps> = ({ product, onEdit, onDelete, showCrudButtons }) => {
   const { openProductModal } = useModal();
 
   const handleClick = () => {
@@ -62,6 +87,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <ProductImage src={product.image} alt={product.name} />
       <ProductTitle>{product.name}</ProductTitle>
       <Price>${product.price.toLocaleString('es-CO')}</Price>
+      {showCrudButtons && (
+        <CrudButtons onClick={e => e.stopPropagation()}>
+          <CrudButton onClick={() => onEdit && onEdit(product)}>Editar</CrudButton>
+          <CrudButton onClick={() => onDelete && onDelete(product)} style={{background:'#ff3366',color:'#fff'}}>Eliminar</CrudButton>
+        </CrudButtons>
+      )}
     </Card>
   );
 };

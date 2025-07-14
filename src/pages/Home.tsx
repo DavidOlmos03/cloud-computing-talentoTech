@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import ProductCard from '../components/ProductCard';
 import { useLicenses } from '../hooks/useLicenses';
 import { licenseToProduct } from '../utils/licenseAdapter';
+import { Product } from '../types';
+import LicenseFormModal from '../components/LicenseFormModal';
 
 const HeroSection = styled.section`
   min-height: 80vh;
@@ -181,11 +183,62 @@ const Location = styled.div`
   }
 `;
 
+const FloatingButton = styled.button`
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  background: linear-gradient(45deg, #00ff9d, #00cc7e);
+  color: #222;
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  font-size: 2rem;
+  font-weight: bold;
+  box-shadow: 0 4px 16px rgba(0,255,157,0.3);
+  cursor: pointer;
+  z-index: 1000;
+  transition: background 0.2s;
+  &:hover {
+    background: linear-gradient(45deg, #00cc7e, #00ff9d);
+  }
+`;
+
 const Home: React.FC = () => {
-  const { licenses, loading, error } = useLicenses();
+  const [editingProduct, setEditingProduct] = useState<Product|null>(null);
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [formMode, setFormMode] = useState<'create'|'edit'>('create');
+  const { licenses, loading, error, deleteLicense, updateLicense, createLicense, fetchLicenses } = useLicenses();
   
   // Convert licenses to products for display
   const products = licenses.map(licenseToProduct);
+
+  // Handlers:
+  const handleEdit = (product: Product) => {
+    setEditingProduct(product);
+    setFormMode('edit');
+    setShowFormModal(true);
+  };
+  const handleDelete = async (product: Product) => {
+    if(window.confirm('¿Seguro que deseas eliminar esta licencia?')){
+      await deleteLicense(product.id);
+      fetchLicenses();
+    }
+  };
+  const handleCreate = () => {
+    setEditingProduct(null);
+    setFormMode('create');
+    setShowFormModal(true);
+  };
+  const handleFormSubmit = async (data: any) => {
+    if(formMode==='edit' && editingProduct){
+      await updateLicense(editingProduct.id, data);
+    } else {
+      await createLicense(data);
+    }
+    setShowFormModal(false);
+    fetchLicenses();
+  };
 
   return (
     <>
@@ -248,7 +301,7 @@ const Home: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
               >
-                <ProductCard product={product} />
+                <ProductCard product={product} onEdit={handleEdit} onDelete={handleDelete} showCrudButtons />
               </motion.div>
             ))}
           </ProductGrid>
@@ -275,6 +328,17 @@ const Home: React.FC = () => {
           </Location>
         </FooterContainer>
       </Footer>
+
+      <FloatingButton onClick={handleCreate}>+</FloatingButton>
+
+      {showFormModal && (
+        <LicenseFormModal
+          mode={formMode}
+          initialData={editingProduct}
+          onClose={()=>setShowFormModal(false)}
+          onSubmit={handleFormSubmit}
+        />
+      )}
     </>
   );
 };
